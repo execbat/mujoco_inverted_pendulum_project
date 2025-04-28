@@ -6,12 +6,12 @@ from gymnasium import spaces
 from inverted_pendulum_env import InvertedPendulumEnv
 from gymnasium.wrappers import TimeLimit
 
-class InvertedPendulumGymEnv_0(gym.Env):
+class InvertedPendulumGymEnv_1(gym.Env):
     """
     Custom Gym environment for controlling an inverted pendulum using MuJoCo.
 
     Goal:
-    - Stabilize the pole tip vertically.
+    - Bring the pole tip to a target point and stabilize it vertically.
 
     Supports continuous action space.
     """
@@ -58,9 +58,9 @@ class InvertedPendulumGymEnv_0(gym.Env):
         # Target parameters
         self.vertical_point = None
         self.target_zone_radius = 0.2
-        self.v_tip_target_in_zone = 0.3485595791924177  # np.sqrt(3/4 * g * l)* np.abs(np.sin((target_zone_radius / l) / 2))
+        self.v_tip_target_in_zone = 2.307759677750525
         self.hold_bonus = 2.0
-        self.acceleration_threshold = 2.175 # 8
+        self.acceleration_threshold = 8
 
         # Spaces
         self.action_space = spaces.Box(low=-3.0, high=3.0, shape=(1,), dtype=np.float32)
@@ -134,13 +134,13 @@ class InvertedPendulumGymEnv_0(gym.Env):
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
 
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
-        tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
+        tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude)
 
         bonus = 1 * (
-            0.2 * tip_accel_bonus_to_vertical +
-            0.2 * tip_speed_bonus_to_vertical +
-            0.6 * ((1 + np.cos(observation[1]))/2 - 0.2) 
-            #0.1 * np.exp(-np.sqrt(dist_to_target_pt))             
+            0.1 * tip_accel_bonus_to_vertical +
+            0.1 * tip_speed_bonus_to_vertical +
+            0.1 * ((1 + np.cos(observation[1]))/2 - 0.2) 
+            0.7 * np.exp(-np.sqrt(dist_to_target_pt))             
         )
 
         if np.isnan(bonus) or np.isinf(bonus):
@@ -236,10 +236,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
     def compute_tip_speed_bonus_to_vertical(self, dist: float, v_tip: float) -> float:
         """Reward for pole tip velocity approaching ideal value."""
-        #ideal_v_tip = self.max_tip_speed * (1 - np.exp(-2 * dist))
-        theta = dist / self.l
-        ideal_v_tip = np.sqrt(3/4 * self.g * self.l) * np.abs(np.sin(theta / 2))
-        #print("ideal_v_tip",ideal_v_tip)
+        ideal_v_tip = self.max_tip_speed * (1 - np.exp(-2 * dist))
         bonus = np.exp(-np.sqrt(abs(v_tip - ideal_v_tip)))
 
         if dist < self.target_zone_radius and v_tip < self.v_tip_target_in_zone:
@@ -269,17 +266,14 @@ class InvertedPendulumGymEnv_0(gym.Env):
         """Calculate current tip acceleration."""
         return (v_tip_now - self.v_tip_previous) / self.dt
 
-    def compute_ideal_tip_acceleration(self, dist: float, v_tip: float, omega: float) -> float:
+    def compute_ideal_tip_acceleration(self, dist: float, v_tip: float) -> float:
         """Calculate ideal tip acceleration."""
-        #ideal_v_tip_derivative = 2 * self.max_tip_speed * np.exp(-2 * dist)
-        ideal_v_tip_derivative = np.sqrt(3/4 * self.g * self.l)/2 * np.cos((dist/self.l)/2) * omega
-        
-        return ideal_v_tip_derivative 
+        ideal_v_tip_derivative = 2 * self.max_tip_speed * np.exp(-2 * dist)
+        return ideal_v_tip_derivative * (-v_tip)
 
-    def compute_tip_acceleration_bonus(self, dist: float, a_tip: float, v_tip_magnitude: float, omega: float) -> float:
+    def compute_tip_acceleration_bonus(self, dist: float, a_tip: float, v_tip_magnitude: float) -> float:
         """Reward for approaching ideal acceleration profile."""
-        ideal_a_tip = self.compute_ideal_tip_acceleration(dist, v_tip_magnitude, omega)
-        #print("ideal_a_tip", ideal_a_tip)
+        ideal_a_tip = self.compute_ideal_tip_acceleration(dist, v_tip_magnitude)
         bonus = np.exp(-np.sqrt(abs(a_tip - ideal_a_tip)))
 
         if dist < self.target_zone_radius and abs(a_tip) > self.acceleration_threshold:
