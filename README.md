@@ -27,12 +27,11 @@ custom environment
 ## 🛠️ Installation
 
 First, clone the repository:
-
-```bash
-
+```
+bash
 git clone https://github.com/execbat/mujoco_inverted_pendulum_project.git
-cd mujoco_inverted_pendulum_project```
-
+cd mujoco_inverted_pendulum_project
+```
 
 ```pip install -r requirements.txt```
 ✅ Make sure you have MuJoCo installed and working.
