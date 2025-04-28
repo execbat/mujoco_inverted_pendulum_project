@@ -34,11 +34,16 @@ cd mujoco_inverted_pendulum_project
 ```
 
 ```pip install -r requirements.txt```
+
 ✅ Make sure you have MuJoCo installed and working.
 
+
 ⚙️ Configuration (config.yaml)
+
 Main configuration is located in `config.yaml`:
+
 ```
+yaml
 env_name: "SberInvertedPendulum-v0"
 experiment_name: "experiment_0"
 
@@ -65,6 +70,7 @@ checkpoint_params:
 ```
 
 🚀 How to Run
+
 Train an agent
 
 For GPU: `python train_gpu.py`
@@ -120,6 +126,7 @@ The environment rewards:
         Inactivity (no changes between steps)
 
 📋 Requirements:
+
 ```
 gymnasium
 numpy
