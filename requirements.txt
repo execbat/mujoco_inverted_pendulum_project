@@ -1,0 +1,7 @@
+gymnasium
+numpy
+matplotlib
+torch
+ruamel.yaml
+mujoco
+mujoco-py
