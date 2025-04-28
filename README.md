@@ -39,6 +39,7 @@ mujoco_inverted_pendulum_project/
 First, clone the repository:
 ```
 bash
+
 git clone https://github.com/execbat/mujoco_inverted_pendulum_project.git
 cd mujoco_inverted_pendulum_project
 ```
@@ -54,6 +55,7 @@ Main configuration is located in `config.yaml`:
 
 ```
 yaml
+
 env_name: "SberInvertedPendulum-v0"
 experiment_name: "experiment_0"
 
