@@ -163,7 +163,7 @@ def train(env,
 
             writer.add_scalar("kl_spike_counter", kl_spike_counter, episode)
 
-            if kl_spike_counter >= update_epochs * 2:
+            if kl_spike_counter >= update_epochs * 2 and False:
                 print(f"Early stopping update due to high KL divergence: {kl_div:.4f}")
                 actor_path = os.path.join(save_dir, f"actor_{episode+1}.pt")
                 critic_path = os.path.join(save_dir, f"critic_{episode+1}.pt")

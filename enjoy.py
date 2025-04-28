@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print(f"Loading model: {last_model}")
 
     # Load actor model
-    actor = torch.load(last_model, map_location='cpu')
+    actor = torch.load(last_model, map_location='cpu', weights_only = False)
     actor.eval()  # Optional: uncomment if you want strict eval mode
 
     # Create environment

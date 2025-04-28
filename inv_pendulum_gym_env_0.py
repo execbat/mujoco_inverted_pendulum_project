@@ -48,7 +48,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.previous_observation = None
 
         # Inactivity parameters
-        self.small_change_threshold = 0.01
+        self.small_change_threshold = 0.1
         self.small_change_penalty = 1
 
         # Derivatives
