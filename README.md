@@ -7,20 +7,31 @@ The environment is designed for **training with PPO (Proximal Policy Optimizatio
 
 ---
 
-## 📂 Project Structure
-custom_envs/ 
-# (Optional) Custom environments experiments/ 
-# Saved training results and models runs/ 
-# TensorBoard logs utils/ 
-# Neural network architecture (nn_arch.py) config.yaml 
-# Training configuration  
-# Training script for CPU train_cpu.py
-# Training script for GPU train_gpu.py 
-# Demonstration (inference) script enjoy.py 
-# Base simulation environment inv_pendulum_gym_env_0.py 
-# Gym-compatible 
-custom environment  
-# Utilities 
+mujoco_inverted_pendulum_project/
+├── custom_envs/                # Custom gym environments (your environment code)
+│   ├── __init__.py
+│   └── nn_arch.py               # Neural network architecture
+│
+├── experiments/                 # Directory for experiment outputs
+│
+├── runs/                        # Directory for TensorBoard logs
+│
+├── utils/                       # Utility scripts
+│   ├── __init__.py
+│   └── nn_arch.py
+│
+│
+├── config.yaml                  # Configuration file for environment and training
+├── inverted_pendulum_env.py     # Base MuJoCo environment setup
+├── inv_pendulum_gym_env_0.py    # Gym wrapper for custom environment
+├── train_cpu.py                 # Script to train agent on CPU
+├── train_gpu.py                 # Script to train agent on GPU
+├── enjoy.py                     # Script to run the trained agent (demonstration)
+├── functions_calc.ipynb         # Jupyter Notebook with speed functions and calculations
+├── requirements.txt             # Python dependencies
+├── .gitignore                   # Files to ignore in Git
+└── README.md                    # Project description and instructions
+
 
 ---
 
