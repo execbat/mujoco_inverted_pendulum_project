@@ -6,7 +6,7 @@ The task is to **move the pole tip to a randomly spawned target** and **hold bal
 The environment is designed for **training with PPO (Proximal Policy Optimization)**.
 
 ---
-
+```
 mujoco_inverted_pendulum_project/
 ├── custom_envs/                # Custom gym environments (your environment code)
 │   ├── __init__.py
@@ -31,8 +31,7 @@ mujoco_inverted_pendulum_project/
 ├── requirements.txt             # Python dependencies
 ├── .gitignore                   # Files to ignore in Git
 └── README.md                    # Project description and instructions
-
-
+```
 ---
 
 ## 🛠️ Installation
