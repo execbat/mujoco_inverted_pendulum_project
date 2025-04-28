@@ -70,9 +70,11 @@ Train an agent
 For GPU: `python train_gpu.py`
 
 For CPU: `python train_cpu.py`
+
 If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue`
 
 🎮 Run the trained agent (Demonstration)
+
 After training, you can run the agent using: `python enjoy.py`
 
 🎯 Environment Description
