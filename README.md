@@ -2,6 +2,7 @@
 
 This project provides a **custom MuJoCo environment** where an agent controls an inverted pendulum.  
 The task is to **move the pole tip to a randomly spawned target** and **hold balance** near the target point.
+Mass of the pole is randomly choosen in range [10;30] kg.
 
 The environment is designed for **training with PPO (Proximal Policy Optimization)**.
 
