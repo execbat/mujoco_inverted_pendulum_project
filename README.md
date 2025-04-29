@@ -47,10 +47,10 @@ cd mujoco_inverted_pendulum_project
 
 ```pip install -r requirements.txt```
 
-✅ Make sure you have MuJoCo installed and working.
+## ✅ Make sure you have MuJoCo installed and working.
 
 
-⚙️ Configuration (config.yaml)
+## ⚙️ Configuration (config.yaml)
 
 Main configuration is located in `config.yaml`:
 
@@ -82,7 +82,7 @@ checkpoint_params:
   save_model_every: 50
 ```
 
-🚀 How to Run
+## 🚀 How to Run
 
 Train an agent
 
@@ -93,7 +93,7 @@ Run PPO on GPU: `python train_gpu.py`
 Run APPO on GPU: `python train_appo_gpu.py`
 
 
-🚀 How to track the learning performance with Tensorboard
+## 🚀 How to track the learning performance with Tensorboard
 
 `cd mujoco_inverted_pendulum_project` and then `tensorboard --logdir=runs`
 
@@ -102,11 +102,11 @@ Run APPO on GPU: `python train_appo_gpu.py`
 If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue` or `python train_appo_gpu.py --continue`
 
 
-🎮 Run the trained agent (Demonstration)
+## 🎮 Run the trained agent (Demonstration)
 
 After training, you can run the agent using: `python enjoy.py`
 
-🎯 Environment Description
+## 🎯 Environment Description
 
     Task: Move the tip of the pole to a dynamically spawned ball target and stabilize. Mass of the pole is randomly choosen [10;30] kg.
 
@@ -147,8 +147,9 @@ The environment rewards:
         High accelerations if too close to the target
 
         Inactivity (no changes between steps)
+        
 
-📋 Requirements:
+## 📋 Requirements:
 
 ```
 gymnasium
