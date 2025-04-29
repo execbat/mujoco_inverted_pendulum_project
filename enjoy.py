@@ -63,7 +63,7 @@ if __name__ == "__main__":
             action = dist.sample()
 
         state, reward, terminated, truncated, _ = env.step(action.squeeze(0).detach().numpy())
-
+        #print("reward", reward)
         if terminated or truncated:
             state, _ = env.reset()
 

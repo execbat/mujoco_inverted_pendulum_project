@@ -82,16 +82,30 @@ def collect_samples(env, actor, critic, gamma, lam):
         torch.stack(stds),
     )
 
-def train(env, actor, critic, gamma=0.99, lam=0.95, clip_eps=0.2, lr=0.001,
-          entropy_coef=0.001, episodes=1000, update_epochs=5, batch_size=64,
-          print_reward_every=10, log_dir="runs/ppo_run/", save_model_every=10,
-          kl_treshold=0.03):
+def train(env, 
+        actor, 
+        critic, 
+        gamma=0.99, 
+        lam=0.95, 
+        clip_eps_start: float = 0.2,
+        clip_eps_max: float = 0.2,
+        clip_eps_min: float = 0.05, 
+        lr=0.001,
+        entropy_coef=0.001, 
+        episodes=1000, 
+        update_epochs=5, 
+        batch_size=64,
+        print_reward_every=10, 
+        log_dir="runs/ppo_run/", 
+        save_model_every=10,
+        kl_treshold=0.03):
 
     actor_optim = optim.Adam(actor.parameters(), lr=lr)
     critic_optim = optim.Adam(critic.parameters(), lr=lr)
     reward_collection = []
     writer = SummaryWriter(log_dir=log_dir)
     kl_spike_counter = 0
+    clip_eps = clip_eps_start
 
     for episode in range(episodes):
         max_reward_ever = float('-inf')
@@ -123,9 +137,9 @@ def train(env, actor, critic, gamma=0.99, lam=0.95, clip_eps=0.2, lr=0.001,
             writer.add_scalar("kl_div", kl_div, episode)
 
             if kl_div > kl_treshold * 1.5:
-                clip_eps = max(clip_eps * 0.9, 0.05)
+                clip_eps = max(clip_eps * 0.9, clip_eps_min)
             if kl_div < kl_treshold * 0.5:
-                clip_eps = min(clip_eps * 1.1, 0.3)
+                clip_eps = min(clip_eps * 1.1, clip_eps_max)
             writer.add_scalar("clip_eps", clip_eps, episode)
 
             if sum(reward_collection[-3:]) / 3.0 < max_reward_ever * 0.9 and episode > 10:
@@ -197,18 +211,23 @@ if __name__ == "__main__":
         print("Models has been created")
 
     print("training started")
-    train(env, actor, critic,
-          gamma=ppo_params["gamma"],
-          lam=ppo_params["lam"],
-          clip_eps=ppo_params["clip_eps"],
-          lr=ppo_params["lr"],
-          entropy_coef=ppo_params["entropy_coef"],
-          episodes=ppo_params["episodes"],
-          update_epochs=ppo_params["update_epochs"],
-          batch_size=ppo_params["batch_size"],
-          print_reward_every=ppo_params["print_reward_every"],
-          log_dir=log_params["log_dir"],
-          save_model_every=checkpoint_params["save_model_every"],
-          kl_treshold=ppo_params["kl_treshold"])
+    train(
+        env,
+        actor,
+        critic,
+        gamma=ppo_params["gamma"],
+        lam=ppo_params["lam"],
+        clip_eps_start=ppo_params["clip_eps_start"],
+        clip_eps_max=ppo_params["clip_eps_max"],
+        clip_eps_min=ppo_params["clip_eps_min"],
+        lr=ppo_params["lr"],
+        entropy_coef=ppo_params["entropy_coef"],
+        episodes=ppo_params["episodes"],
+        update_epochs=ppo_params["update_epochs"],
+        batch_size=ppo_params["batch_size"],
+        print_reward_every=ppo_params["print_reward_every"],
+        log_dir=log_params["log_dir"],
+        save_model_every=checkpoint_params["save_model_every"],
+        kl_treshold=ppo_params["kl_treshold"])
     print("training finished")
 
