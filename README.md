@@ -86,9 +86,12 @@ checkpoint_params:
 
 Train an agent
 
-For GPU: `python train_gpu.py`
+Run PPO on CPU: `python train_cpu.py`
 
-For CPU: `python train_cpu.py`
+Run PPO on GPU: `python train_gpu.py`
+
+Run APPO on GPU: `python train_appo_gpu.py`
+
 
 If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue`
 
