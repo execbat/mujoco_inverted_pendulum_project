@@ -93,6 +93,12 @@ Run PPO on GPU: `python train_gpu.py`
 Run APPO on GPU: `python train_appo_gpu.py`
 
 
+🚀 How to track the learning performance with Tensorboard
+
+`cd mujoco_inverted_pendulum_project` and then `tensorboard --logdir=runs`
+
+
+
 If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue`
 
 🎮 Run the trained agent (Demonstration)
