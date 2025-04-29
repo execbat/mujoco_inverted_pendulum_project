@@ -249,7 +249,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         #print("speed",bonus)
 
         if dist < self.target_zone_radius and v_tip < 0.2 * self.max_tip_speed:
-            low_speed_at_top = self.hold_bonus * bonus
+            low_speed_at_top = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (v_tip / self.v_tip_target_in_zone)**2)
             bonus += low_speed_at_top
 
         #if dist < self.target_zone_radius:
@@ -292,7 +292,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         #print("accel", bonus)
 
         if dist < self.target_zone_radius and v_tip_magnitude < 0.2 * self.max_tip_speed:
-            low_accel_at_top = self.hold_bonus * bonus
+            low_accel_at_top = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (a_tip / 0.1)**2)
             bonus += low_accel_at_top
 
         return bonus
