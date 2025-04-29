@@ -46,6 +46,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.ball_pose = self.draw_ball()
         self.spawn_ball_every = spawn_ball_every
         self.previous_observation = None
+        self.previous_dist_to_vertical = None
 
         # Inactivity parameters
         self.small_change_threshold = 0.1
@@ -59,7 +60,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.vertical_point = None
         self.target_zone_radius = 0.2
         self.v_tip_target_in_zone = 0.1
-        self.hold_bonus = 100.0
+        self.hold_bonus = 10.0
         self.acceleration_threshold = 0.000023
 
         # Spaces
@@ -96,7 +97,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
             [self.pole_mass / 10.0],
             [v_tip_magnitude]
         ]).ravel()
-
+        
+        self.previous_dist_to_vertical = dist_to_vertical_pt
         return observation.astype(np.float32), {}
 
     def step(self, action: np.ndarray):
@@ -162,9 +164,10 @@ class InvertedPendulumGymEnv_0(gym.Env):
             [self.pole_mass / 10.0],
             [v_tip_magnitude]
         ]).ravel()
-
+        
+        # save info about previous state
         self.v_tip_previous = v_tip_magnitude
-
+        self.previous_dist_to_vertical = dist_to_vertical_pt
         return observation.astype(np.float32), reward, terminated, truncated, {}
 
     def render(self):
@@ -250,8 +253,20 @@ class InvertedPendulumGymEnv_0(gym.Env):
         #print("speed",bonus)
 
         if dist < self.target_zone_radius and v_tip < 0.2 * self.max_tip_speed:
-            low_speed_at_top = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (v_tip / self.v_tip_target_in_zone)**2)
-            bonus += low_speed_at_top
+            dist_diff = dist - self.previous_dist_to_vertical
+            low_speed_at_top_bonus = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (v_tip / self.v_tip_target_in_zone)**2)
+            if dist_diff < 0 and dist > 0.1: # going closer to the top 
+                bonus += low_speed_at_top_bonus 
+            
+            elif dist_diff > 0 and dist > 0.1: # going further from the top
+                bonus += low_speed_at_top /2
+                
+            elif dist <= 0.1:
+                bonus += 2 * low_speed_at_top_bonus     
+            
+                             
+            
+            
 
         #if dist < self.target_zone_radius:
         #    bonus -= np.clip(v_tip - self.v_tip_target_in_zone, 0, None)
@@ -292,9 +307,9 @@ class InvertedPendulumGymEnv_0(gym.Env):
         bonus = np.exp(-np.sqrt(abs(a_tip - ideal_a_tip)))
         #print("accel", bonus)
 
-        if dist < self.target_zone_radius and v_tip_magnitude < 0.2 * self.max_tip_speed:
-            low_accel_at_top = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (a_tip / 0.1)**2)
-            bonus += low_accel_at_top
+        #if dist < self.target_zone_radius and v_tip_magnitude < 0.2 * self.max_tip_speed:
+        #    low_accel_at_top = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (a_tip / 0.1)**2)
+        #    bonus += low_accel_at_top
 
         return bonus
 
