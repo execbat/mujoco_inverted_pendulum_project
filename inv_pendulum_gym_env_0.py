@@ -58,14 +58,14 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
         # Target parameters
         self.vertical_point = None
-        self.target_zone_radius = 0.2
+        self.target_zone_radius = 0.3
         self.v_tip_target_in_zone = 0.1
         self.hold_bonus = 10.0
         self.acceleration_threshold = 0.000023
 
         # Spaces
         self.action_space = spaces.Box(low=-3.0, high=3.0, shape=(1,), dtype=np.float32)
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(8,), dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(9,), dtype=np.float32)
 
     def reset(self, seed=None, options=None):
         """
@@ -84,7 +84,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
         observation = self.sim.reset_model()
         self.draw_ball()
         self.calc_vertical_point(observation)
-
+        
+        gravity_moment = self.calc_gravity_moment(observation)
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
@@ -93,7 +94,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
         observation = np.concatenate([
             observation,
             [dist_to_vertical_pt], 
-            [dist_to_target_pt], 
+            [0], #[self.ball_pose[0] - self.pole_end_point[0]],
+            [0], #[self.ball_pose[2] - self.pole_end_point[2]], 
             [self.pole_mass / 10.0],
             [v_tip_magnitude]
         ]).ravel()
@@ -127,7 +129,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         else:
             cart_hit_penalty = 0
         
-        
+        gravity_moment = self.calc_gravity_moment(observation)
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
@@ -135,14 +137,17 @@ class InvertedPendulumGymEnv_0(gym.Env):
         
        
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
-
+        moment_compensation_bonus = self.calc_gravity_moment_bonus(observation, dist_to_vertical_pt)
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
 
-        bonus = 1 *(  
-            0.33 * tip_accel_bonus_to_vertical +
-            0.33 * tip_speed_bonus_to_vertical +
-            0.33 * (1 + np.cos(observation[1]))/2)
+        bonus =  (  
+             tip_accel_bonus_to_vertical +
+             tip_speed_bonus_to_vertical +
+             (1 + np.cos(observation[1]))/2 + 
+             moment_compensation_bonus
+            ) / 4
+             
               
             #0.1 * np.exp(-np.sqrt(dist_to_target_pt))             
         
@@ -160,7 +165,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
         observation = np.concatenate([
             observation,
             [dist_to_vertical_pt], 
-            [dist_to_target_pt], 
+            [0], #[self.ball_pose[0] - self.pole_end_point[0]],
+            [0], #[self.ball_pose[2] - self.pole_end_point[2]], 
             [self.pole_mass / 10.0],
             [v_tip_magnitude]
         ]).ravel()
@@ -252,25 +258,10 @@ class InvertedPendulumGymEnv_0(gym.Env):
         bonus = np.exp(-np.sqrt(abs(error)))
         #print("speed",bonus)
 
-        if dist < self.target_zone_radius and v_tip < 0.2 * self.max_tip_speed:
-            dist_diff = dist - self.previous_dist_to_vertical
-            low_speed_at_top_bonus = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (v_tip / self.v_tip_target_in_zone)**2)
-            if dist_diff < 0 and dist > 0.1: # going closer to the top 
-                bonus += low_speed_at_top_bonus 
+        #if dist < self.target_zone_radius and v_tip < 0.1 * self.max_tip_speed:            
+        #    low_speed_at_top_bonus = self.hold_bonus * (1 - dist / self.target_zone_radius) / (1 + (v_tip / self.v_tip_target_in_zone)**2)
+        #    bonus += low_speed_at_top_bonus 
             
-            elif dist_diff > 0 and dist > 0.1: # going further from the top
-                bonus += low_speed_at_top_bonus /2
-                
-            elif dist <= 0.1:
-                bonus += 2 * low_speed_at_top_bonus     
-            
-                             
-            
-            
-
-        #if dist < self.target_zone_radius:
-        #    bonus -= np.clip(v_tip - self.v_tip_target_in_zone, 0, None)
-
         return bonus
 
     def calc_idle_penalty(self, current_observation: np.ndarray) -> float:
@@ -331,6 +322,19 @@ class InvertedPendulumGymEnv_0(gym.Env):
         theta = np.arccos(np.clip(z_tip / self.l, -1.0, 1.0))  # angle from vertical
         arc_distance = self.l * theta
         return arc_distance
+        
+        
+    def calc_gravity_moment(self, observation):
+        theta = observation[1]
+        return - self.pole_mass * self.g * self.l/2 * np.sin(theta)
+        
+    def calc_gravity_moment_bonus(self, observation, dist):
+        g_moment = self.calc_gravity_moment(observation)
+        if dist < self.target_zone_radius:
+            #print("g_moment", g_moment)
+            return self.holding_bonus / (1 + abs(g_moment))     
+        return 0
+        
 
     @property
     def current_time(self) -> float:
