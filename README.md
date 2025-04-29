@@ -99,7 +99,8 @@ Run APPO on GPU: `python train_appo_gpu.py`
 
 
 
-If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue`
+If you want to continue training from a previous checkpoint: `python train_gpu.py --continue` or `python train_cpu.py --continue` or `python train_appo_gpu.py --continue`
+
 
 🎮 Run the trained agent (Demonstration)
 
