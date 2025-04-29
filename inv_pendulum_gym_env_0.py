@@ -87,7 +87,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
-        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation)
+        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = False) # speed og the pole tip exclude cart speed
 
         observation = np.concatenate([
             observation,
@@ -129,7 +129,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
-        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation)
+        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = False) # speed og the pole tip exclude cart speed
+        
        
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
 
@@ -137,9 +138,9 @@ class InvertedPendulumGymEnv_0(gym.Env):
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
 
         bonus = 1 * (
-            0.4 * tip_accel_bonus_to_vertical +
-            0.4 * tip_speed_bonus_to_vertical +
-            0.2 * ((1 + np.cos(observation[1]))/2 - 0.2) 
+            0.2 * tip_accel_bonus_to_vertical +
+            0.2 * tip_speed_bonus_to_vertical +
+            0.6 * ((1 + np.cos(observation[1]))/2 - 0.2) 
             #0.1 * np.exp(-np.sqrt(dist_to_target_pt))             
         )
 
@@ -222,13 +223,16 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
         return ke_translational + ke_rotational
 
-    def get_pole_tip_velocity(self, observation: np.ndarray) -> tuple:
+    def get_pole_tip_velocity(self, observation: np.ndarray, include_cart_speed = True) -> tuple:
         """Calculate the velocity of the pole tip."""
         pole_angle = observation[1]
         cart_vel = observation[2]
         pole_omega = observation[3]
 
-        vx_tip = cart_vel + self.l * pole_omega * np.cos(pole_angle)
+        if include_cart_speed:
+            vx_tip = cart_vel + self.l * pole_omega * np.cos(pole_angle)
+        else:
+            vx_tip = self.l * pole_omega * np.cos(pole_angle)    
         vz_tip = self.l * pole_omega * np.sin(pole_angle)
         v_tip_magnitude = np.sqrt(vx_tip**2 + vz_tip**2)
 
@@ -270,12 +274,12 @@ class InvertedPendulumGymEnv_0(gym.Env):
         """Calculate current tip acceleration."""
         return (v_tip_now - self.v_tip_previous) / self.dt
 
-    def compute_ideal_tip_acceleration(self, dist: float, v_tip: float, omega: float) -> float:
-        """Calculate ideal tip acceleration."""
-        #ideal_v_tip_derivative = 2 * self.max_tip_speed * np.exp(-2 * dist)
-        ideal_v_tip_derivative = np.sqrt(3/4 * self.g * self.l)/2 * np.cos((dist/self.l)/2) * omega
-        
-        return ideal_v_tip_derivative 
+    #def compute_ideal_tip_acceleration(self, dist: float, v_tip: float, omega: float) -> float:
+    #    """Calculate ideal tip acceleration."""
+    #    #ideal_v_tip_derivative = 2 * self.max_tip_speed * np.exp(-2 * dist)
+    #    ideal_v_tip_derivative = np.sqrt(3/4 * self.g * self.l)/2 * np.cos((dist/self.l)/2) * omega
+    #    
+    #    return ideal_v_tip_derivative 
 
     def compute_tip_acceleration_bonus(self, dist: float, a_tip: float, v_tip_magnitude: float, omega: float) -> float:
         """Reward for approaching ideal acceleration profile."""
