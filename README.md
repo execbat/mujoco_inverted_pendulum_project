@@ -47,7 +47,7 @@ cd mujoco_inverted_pendulum_project
 
 ```pip install -r requirements.txt```
 
-## ✅ Make sure you have MuJoCo installed and working.
+✅ Make sure you have MuJoCo installed and working.
 
 
 ## ⚙️ Configuration (config.yaml)
