@@ -332,7 +332,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         g_moment = self.calc_gravity_moment(observation)
         if dist < self.target_zone_radius:
             #print("g_moment", g_moment)
-            return self.holding_bonus / (1 + abs(g_moment))     
+            return self.hold_bonus / (1 + abs(g_moment))     
         return 0
         
 
