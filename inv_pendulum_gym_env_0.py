@@ -33,7 +33,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.l = 0.6  # Pole length
         self.pole_mass = 10.0
         self.g = 9.81
-        self.max_tip_speed = 7
+        self.max_tip_speed = 1
 
         # Cart parameters
         self.cart_mass = 10.0
@@ -58,9 +58,9 @@ class InvertedPendulumGymEnv_0(gym.Env):
         # Target parameters
         self.vertical_point = None
         self.target_zone_radius = 0.1
-        self.v_tip_target_in_zone = 0.013856768437074951  
+        self.v_tip_target_in_zone = 0.00014 
         self.hold_bonus = 100.0
-        self.acceleration_threshold = 0.0022987842953389116 # 8
+        self.acceleration_threshold = 0.000023
 
         # Spaces
         self.action_space = spaces.Box(low=-3.0, high=3.0, shape=(1,), dtype=np.float32)
@@ -264,7 +264,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
     def calc_high_speed_penalty(self, speed: float) -> float:
         """Penalty for pole tip exceeding maximum allowed speed."""
-        return 1.0 if speed > self.max_tip_speed else 0.0
+        return 0 # 1.0 if speed > self.max_tip_speed * 1.2 else 0.0
 
     def compute_current_tip_acceleration(self, v_tip_now: float) -> float:
         """Calculate current tip acceleration."""
