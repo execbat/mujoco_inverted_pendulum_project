@@ -57,8 +57,8 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
         # Target parameters
         self.vertical_point = None
-        self.target_zone_radius = 0.1
-        self.v_tip_target_in_zone = 0.00014 
+        self.target_zone_radius = 0.05
+        self.v_tip_target_in_zone = 0.1
         self.hold_bonus = 100.0
         self.acceleration_threshold = 0.000023
 
@@ -137,10 +137,10 @@ class InvertedPendulumGymEnv_0(gym.Env):
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
 
-        bonus = 1 * (
-            0.2 * tip_accel_bonus_to_vertical +
-            0.2 * tip_speed_bonus_to_vertical +
-            0.6 * ((1 + np.cos(observation[1]))/2 - 0.2) 
+        bonus = ((1 + np.cos(observation[1]))/2 * (
+            0.5 * tip_accel_bonus_to_vertical +
+            0.5 * tip_speed_bonus_to_vertical 
+              ) 
             #0.1 * np.exp(-np.sqrt(dist_to_target_pt))             
         )
 
@@ -244,14 +244,16 @@ class InvertedPendulumGymEnv_0(gym.Env):
         theta = dist / self.l
         ideal_v_tip = (1 - np.cos(theta)) * self.max_tip_speed
         #print("ideal_v_tip",ideal_v_tip)
-        bonus = np.exp(-np.sqrt(abs(v_tip - ideal_v_tip)))
+        error = v_tip - ideal_v_tip
+        bonus = np.exp(-np.sqrt(abs(error)))
         #print("speed",bonus)
 
-        if dist < self.target_zone_radius and v_tip < self.v_tip_target_in_zone:
-            bonus += self.hold_bonus
+        if dist < self.target_zone_radius and v_tip < 0.2 * self.max_tip_speed:
+            low_speed_at_top = self.hold_bonus * bonus
+            bonus += low_speed_at_top
 
-        if dist < self.target_zone_radius:
-            bonus -= np.clip(v_tip - self.v_tip_target_in_zone, 0, None)
+        #if dist < self.target_zone_radius:
+        #    bonus -= np.clip(v_tip - self.v_tip_target_in_zone, 0, None)
 
         return bonus
 
@@ -289,8 +291,9 @@ class InvertedPendulumGymEnv_0(gym.Env):
         bonus = np.exp(-np.sqrt(abs(a_tip - ideal_a_tip)))
         #print("accel", bonus)
 
-        if dist < self.target_zone_radius and abs(a_tip) > self.acceleration_threshold:
-            bonus -= (abs(a_tip) - self.acceleration_threshold) * 0.1
+        if dist < self.target_zone_radius and v_tip_magnitude < 0.2 * self.max_tip_speed:
+            low_accel_at_top = self.hold_bonus * bonus
+            bonus += low_accel_at_top
 
         return bonus
 

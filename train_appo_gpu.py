@@ -127,7 +127,9 @@ def train(envs: gym.vector.AsyncVectorEnv,
           critic: nn.Module,
           gamma: float = 0.99,
           lam: float = 0.95,
-          clip_eps: float = 0.2,
+          clip_eps_start: float = 0.2,
+          clip_eps_max: float = 0.2,
+          clip_eps_min: float = 0.05,
           lr: float = 0.001,
           entropy_coef: float = 0.001,
           episodes: int = 1000,
@@ -162,7 +164,7 @@ def train(envs: gym.vector.AsyncVectorEnv,
     writer = SummaryWriter(log_dir=log_dir)
 
     reward_history = []
-    clip_eps_start = clip_eps
+    clip_eps = clip_eps_start 
 
     for episode in range(episodes):
         states, actions, old_log_probs, returns, advantages, mus, stds, total_reward = collect_samples_parallel(envs, actor, critic, gamma, lam, steps_per_env)
@@ -190,9 +192,9 @@ def train(envs: gym.vector.AsyncVectorEnv,
                 kl_div = torch.distributions.kl_divergence(old_dist, dist).sum(axis=-1).mean()
 
             if kl_div > kl_treshold * 1.5:
-                clip_eps = max(clip_eps * 0.9, 0.05)
-            elif kl_div < kl_treshold * 0.5:
-                clip_eps = min(clip_eps * 1.1, 0.3)
+                clip_eps = max(clip_eps * 0.9, clip_eps_min)
+            if kl_div < kl_treshold * 0.5:
+                clip_eps = min(clip_eps * 1.1, clip_eps_max)
 
             # Loss calculation
             ratio = (new_log_probs - batch_old_log_probs).exp()
@@ -271,7 +273,9 @@ if __name__ == "__main__":
     train(envs, actor, critic,
           gamma=ppo_params["gamma"],
           lam=ppo_params["lam"],
-          clip_eps=ppo_params["clip_eps_start"],
+          clip_eps_start=ppo_params["clip_eps_start"],
+          clip_eps_max=ppo_params["clip_eps_max"],
+          clip_eps_min=ppo_params["clip_eps_min"],
           lr=ppo_params["lr"],
           entropy_coef=ppo_params["entropy_coef"],
           episodes=ppo_params["episodes"],
