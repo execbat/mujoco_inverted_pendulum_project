@@ -259,7 +259,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
                 bonus += low_speed_at_top_bonus 
             
             elif dist_diff > 0 and dist > 0.1: # going further from the top
-                bonus += low_speed_at_top /2
+                bonus += low_speed_at_top_bonus /2
                 
             elif dist <= 0.1:
                 bonus += 2 * low_speed_at_top_bonus     
