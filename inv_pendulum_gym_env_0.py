@@ -57,7 +57,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
         # Target parameters
         self.vertical_point = None
-        self.target_zone_radius = 0.05
+        self.target_zone_radius = 0.2
         self.v_tip_target_in_zone = 0.1
         self.hold_bonus = 100.0
         self.acceleration_threshold = 0.000023
@@ -121,7 +121,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.calc_vertical_point(observation)
 
         if abs(observation[0]) >= 1.0:
-            cart_hit_penalty = 1.0
+            cart_hit_penalty = 5.0
         else:
             cart_hit_penalty = 0
         
@@ -137,12 +137,13 @@ class InvertedPendulumGymEnv_0(gym.Env):
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
 
-        bonus = ((1 + np.cos(observation[1]))/2 * (
-            0.5 * tip_accel_bonus_to_vertical +
-            0.5 * tip_speed_bonus_to_vertical 
-              ) 
+        bonus = 1 *(  
+            0.33 * tip_accel_bonus_to_vertical +
+            0.33 * tip_speed_bonus_to_vertical +
+            0.33 * (1 + np.cos(observation[1]))/2)
+              
             #0.1 * np.exp(-np.sqrt(dist_to_target_pt))             
-        )
+        
 
         if np.isnan(bonus) or np.isinf(bonus):
             bonus = 0.0
