@@ -5,12 +5,12 @@ class Actor(nn.Module):
     def __init__(self, n_obs, n_actions):
         super().__init__()
         self.fc = nn.Sequential(
-            nn.Linear(n_obs, 64),
+            nn.Linear(n_obs, 256),
             nn.Tanh(),
-            nn.Linear(64, 32),
+            nn.Linear(256, 64),
             nn.Tanh(),
         )
-        self.mu_head = nn.Linear(32, n_actions)
+        self.mu_head = nn.Linear(64, n_actions)
         self.log_std = nn.Parameter(torch.zeros(n_actions))  
         
         # init weights and bias
@@ -27,9 +27,9 @@ class Critic(nn.Module):
     def __init__(self, n_obs):
         super().__init__()
         self.model = nn.Sequential(
-            nn.Linear(n_obs, 64),
+            nn.Linear(n_obs, 256),
             nn.Tanh(),
-            nn.Linear(64, 1)
+            nn.Linear(256, 1)
         )
 
     def forward(self, x):
