@@ -60,7 +60,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.vertical_point = None
         self.target_zone_radius = 0.05
         self.v_tip_target_in_zone = 0.1
-        self.hold_bonus = 1.0
+        self.hold_bonus = 5.0
         self.acceleration_threshold = 0.000023
 
         # Spaces
@@ -89,7 +89,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
-        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = True) # speed og the pole tip exclude cart speed
+        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = False) # speed og the pole tip exclude cart speed
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
 
         observation = np.concatenate([
@@ -131,7 +131,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.calc_vertical_point(observation)
 
         if abs(observation[0]) >= 1.0:
-            cart_hit_penalty = 2.0
+            cart_hit_penalty = 1.0
         else:
             cart_hit_penalty = 0
         
@@ -140,14 +140,14 @@ class InvertedPendulumGymEnv_0(gym.Env):
         self.pole_end_point = self.calc_pole_end_point(observation)
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
-        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = True) # speed og the pole tip exclude cart speed
+        v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = False) # speed og the pole tip exclude cart speed
         
        
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
         moment_compensation_bonus = self.calc_gravity_moment_bonus(observation, dist_to_vertical_pt)
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
-        dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt)
+        dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt, dist_to_vertical_pt)
         
 
         bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + (moment_compensation_bonus+dist_to_target_bonus)/2
@@ -346,8 +346,10 @@ class InvertedPendulumGymEnv_0(gym.Env):
             return self.hold_bonus / (1 + abs(g_moment))     
         return 0
         
-    def calc_dist_to_target_bonus(self, dist_to_target):
-        return 1 / (1 + dist_to_target * 10)    
+    def calc_dist_to_target_bonus(self, dist_to_target, dist_to_vertical_pt):
+        if dist_to_vertical_pt < 0.25 * np.pi * self.l:
+            return self.hold_bonus / (1 + dist_to_target * 10) 
+        return 0       
         
 
     @property

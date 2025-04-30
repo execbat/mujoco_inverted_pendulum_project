@@ -48,13 +48,13 @@ if __name__ == "__main__":
     actor.eval()  # Optional: uncomment if you want strict eval mode
 
     # Create environment
-    env = gym.make(env_name, max_episode_steps=5000, render=True, spawn_ball_every=1000)
+    env = gym.make(env_name, max_episode_steps=2000, render=True, spawn_ball_every=1000)
     print("Gymnasium environment created.")
 
     state, _ = env.reset()
 
     # Play with the trained agent
-    while env.unwrapped.current_time < 50000:
+    while True:
         state_tensor = torch.tensor(state, dtype=torch.float32)
 
         with torch.no_grad():
