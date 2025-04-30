@@ -1,0 +1,100 @@
+Environment Documentation: InvertedPendulumGymEnv_0 (MuJoCo-based Gym Environment)
+
+Overview
+This environment is a custom OpenAI Gym-compatible environment built on top of the MuJoCo physics engine. Its purpose is to simulate an inverted pendulum system mounted on a movable cart, with the goal of stabilizing the pendulum in an upright position. The environment supports continuous control and is structured to enable reinforcement learning algorithms to learn balancing behavior through physical simulation.
+
+Core Objective
+The primary objective for the agent is to control the horizontal motion of the cart in such a way that the attached pole remains as close to vertical as possible, ideally stabilizing the tip of the pole at the topmost position (vertically upright). Additional objectives include minimizing unnecessary motion and eventually reaching and hovering near a randomly placed target ("ball") point in space.
+
+Environment Structure and Implementation
+The environment is implemented as a subclass of gym.Env and wrapped in the Gymnasium API to enable compatibility with standard RL libraries. It includes:
+
+A MuJoCo simulation backend (InvertedPendulumEnv)
+
+Observation and action spaces defined using gymnasium.spaces
+
+Time management through optional gymnasium.wrappers.TimeLimit
+
+Action Space
+
+Type: Box(low=-3.0, high=3.0, shape=(1,))
+
+Description: Represents the continuous force applied to the cart.
+
+Observation Space
+
+Type: Box(shape=(14,))
+
+Contents:
+
+Cart position and velocity
+
+Pole angle and angular velocity
+
+Distance to vertical tip (arc distance)
+
+Distance to a moving target point
+
+Tip position (x, z)
+
+Target point position (x, z)
+
+Normalized pole mass
+
+Normalized gravity moment (torque due to gravity)
+
+Pole tip velocity magnitude
+
+Pole tip acceleration
+
+Reward Structure
+The reward function includes multiple components:
+
+Tip Speed Bonus: Encourages the pole tip velocity to match an idealized function defined by
+
+where  is the pole angle derived from arc distance.
+
+Tip Acceleration Bonus: Encourages the pole tip acceleration to match an ideal profile:
+
+This matches the kinematic expectation of the pendulum's movement.
+
+Gravity Moment Bonus: Rewards minimizing the gravitational torque when the pole is upright, encouraging physical compensation of instability.
+
+Distance-to-Target Bonus: Given a random target point, the closer the tip is to this point (within a certain arc distance), the higher the reward.
+
+Cosine Weighting: A multiplier based on  is applied to ensure rewards are emphasized when the pole is near vertical.
+
+Penalties
+
+Cart Out of Bounds Penalty: Applied when the cart moves beyond a position threshold.
+
+Idle Penalty: Penalizes the agent for minimal changes between consecutive states.
+
+High-Speed Penalty (optional): Can be activated to penalize excessive velocities.
+
+Mass Randomization
+To increase robustness, the pole's mass is randomized on each reset within a given range. The normalized value is included in the observation to assist the agent in adaptation (domain randomization).
+
+Environment Dynamics and Termination
+
+Each episode proceeds in discrete steps.
+
+Termination condition is based on simulation failure or environment-specific thresholds.
+
+Environment can optionally render using MuJoCo visualizer if render=True.
+
+Usage
+This environment is designed to be used with model-free RL algorithms such as PPO. The physics realism combined with crafted shaped rewards guides the agent through a curriculum:
+
+Learn to generate upward motion.
+
+Match ideal velocity and acceleration profiles.
+
+Stabilize near the top.
+
+Reach and hold near a goal point.
+
+Conclusion
+InvertedPendulumGymEnv_0 offers a flexible, realistic, and analytically structured benchmark for learning complex balancing tasks using reinforcement learning. It emphasizes physics-based guidance (via analytical functions for velocity/acceleration) and layered reward shaping to enable sample-efficient learning in dynamic control problems.
+
+

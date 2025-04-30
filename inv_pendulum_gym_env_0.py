@@ -141,13 +141,14 @@ class InvertedPendulumGymEnv_0(gym.Env):
         dist_to_target_pt = self.calc_euclidean(self.ball_pose, self.pole_end_point)
         dist_to_vertical_pt = self.arc_distance_to_vertical()
         v_tip_magnitude, vx_tip, vz_tip = self.get_pole_tip_velocity(observation, include_cart_speed = False) # speed og the pole tip exclude cart speed
+        v_tip_and_cart, _, _ = self.get_pole_tip_velocity(observation, include_cart_speed = True)
         
        
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
         moment_compensation_bonus = self.calc_gravity_moment_bonus(observation, dist_to_vertical_pt)
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
-        dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt, dist_to_vertical_pt)
+        dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt, dist_to_vertical_pt, v_tip_and_cart)
         
 
         bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + (moment_compensation_bonus+dist_to_target_bonus)/2
@@ -343,12 +344,12 @@ class InvertedPendulumGymEnv_0(gym.Env):
         g_moment = self.calc_gravity_moment(observation)
         if dist < self.target_zone_radius:
             #print("g_moment", g_moment)
-            return self.hold_bonus / (1 + abs(g_moment))     
+            return (0.5 * self.hold_bonus) / (1 + abs(g_moment))     
         return 0
         
-    def calc_dist_to_target_bonus(self, dist_to_target, dist_to_vertical_pt):
+    def calc_dist_to_target_bonus(self, dist_to_target, dist_to_vertical_pt, v_tip_and_cart):        
         if dist_to_vertical_pt < 0.25 * np.pi * self.l:
-            return self.hold_bonus / (1 + dist_to_target * 10) 
+            return self.hold_bonus * ((np.exp(-dist_to_target * 2) + (np.exp(-v_tip_and_cart * 2)))/2) 
         return 0       
         
 
