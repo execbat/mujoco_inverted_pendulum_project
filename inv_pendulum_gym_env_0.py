@@ -18,7 +18,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
     metadata = {"render_modes": ["human"], "render_fps": 50}
 
-    def __init__(self, render: bool = False, spawn_ball_every: int = 500):
+    def __init__(self, render: bool = False, spawn_ball_every: int = 300):
         """
         Initialize the environment.
 
@@ -151,7 +151,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
         dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt, dist_to_vertical_pt, v_tip_and_cart)
         
 
-        bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + (moment_compensation_bonus+dist_to_target_bonus)/2
+        bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + moment_compensation_bonus + 3* dist_to_target_bonus
             
              
               

@@ -4,13 +4,13 @@ experiment_name: "experiment_0"
 ppo_params:
   gamma: 0.99
   lam: 0.95
-  clip_eps_start: 0.3 #0.2
-  clip_eps_max: 0.3
+  clip_eps_start: 0.2 #0.2
+  clip_eps_max: 0.2
   clip_eps_min: 0.05
-  lr: 0.00003   #0.00003
-  entropy_coef: 0.1 # 0.0001
+  lr: 0.000003   #0.00003
+  entropy_coef: 0.0001 # 0.0001
   episodes: 100000
-  update_epochs: 4
+  update_epochs: 2
   batch_size: 512
   print_reward_every: 10
   max_episode_steps: 2000

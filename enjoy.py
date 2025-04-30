@@ -48,7 +48,7 @@ if __name__ == "__main__":
     actor.eval()  # Optional: uncomment if you want strict eval mode
 
     # Create environment
-    env = gym.make(env_name, max_episode_steps=2000, render=True, spawn_ball_every=1000)
+    env = gym.make(env_name, max_episode_steps=2000, render=True, spawn_ball_every=300)
     print("Gymnasium environment created.")
 
     state, _ = env.reset()
