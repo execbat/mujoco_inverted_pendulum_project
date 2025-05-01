@@ -132,8 +132,6 @@ After training, you can run the agent using: `python enjoy.py`
         
         - Acceleration of the pole end point
 
-        - Potential energy
-
 
     Action Space:
 
