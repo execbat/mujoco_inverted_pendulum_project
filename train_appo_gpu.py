@@ -246,7 +246,7 @@ if __name__ == "__main__":
     checkpoint_params = config['checkpoint_params']
     experiment_name = config['experiment_name']
 
-    num_envs = 32  # <- Сколько одновременно окружений запускаем
+    num_envs = 32  # <- how many envs in parallel
     save_dir = os.path.join("experiments", experiment_name)
     
 
@@ -281,7 +281,7 @@ if __name__ == "__main__":
           episodes=ppo_params["episodes"],
           update_epochs=ppo_params["update_epochs"],
           batch_size=ppo_params["batch_size"],
-          steps_per_env=512,  # <- Сколько шагов на одно окружение между апдейтами
+          steps_per_env=512,  # <- steps between updates
           log_dir=log_params["log_dir"],
           save_model_every=checkpoint_params["save_model_every"],
           kl_treshold=ppo_params["kl_treshold"])
