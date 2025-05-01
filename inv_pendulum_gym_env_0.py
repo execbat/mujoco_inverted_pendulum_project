@@ -43,7 +43,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
         # State
         self.step_num = 0
-        self.ball_pose = self.draw_ball()
+        self.ball_pose = None #self.draw_ball()
         self.spawn_ball_every = spawn_ball_every
         self.previous_observation = None
         self.previous_dist_to_vertical = None
@@ -145,13 +145,13 @@ class InvertedPendulumGymEnv_0(gym.Env):
         
        
         current_a_tip = self.compute_current_tip_acceleration(v_tip_magnitude)
-        moment_compensation_bonus = self.calc_gravity_moment_bonus(observation, dist_to_vertical_pt)
+        moment_compensation_bonus = self.calc_gravity_moment_bonus(observation, dist_to_vertical_pt, dist_to_target_pt)
         tip_speed_bonus_to_vertical = self.compute_tip_speed_bonus_to_vertical(dist_to_vertical_pt, v_tip_magnitude)
         tip_accel_bonus_to_vertical = self.compute_tip_acceleration_bonus(dist_to_vertical_pt, current_a_tip, v_tip_magnitude, observation[3])
         dist_to_target_bonus = self.calc_dist_to_target_bonus(dist_to_target_pt, dist_to_vertical_pt, v_tip_and_cart)
         
 
-        bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + moment_compensation_bonus + 3* dist_to_target_bonus
+        bonus =  (1 + np.cos(observation[1]))/2 *(tip_accel_bonus_to_vertical +  tip_speed_bonus_to_vertical) / 2 + (moment_compensation_bonus +  dist_to_target_bonus)/2
             
              
               
@@ -340,16 +340,17 @@ class InvertedPendulumGymEnv_0(gym.Env):
         theta = observation[1]
         return - self.pole_mass * self.g * self.l/2 * np.sin(theta)
         
-    def calc_gravity_moment_bonus(self, observation, dist):
+    def calc_gravity_moment_bonus(self, observation, dist_to_vertical_pt, dist_to_target_pt):
         g_moment = self.calc_gravity_moment(observation)
-        if dist < self.target_zone_radius:
+        if dist_to_vertical_pt < 0.10 * np.pi * self.l:
             #print("g_moment", g_moment)
-            return (0.5 * self.hold_bonus) / (1 + abs(g_moment))     
+            return (0.5 * self.hold_bonus) / (1 + abs(g_moment) * 100 * dist_to_target_pt)   
         return 0
         
     def calc_dist_to_target_bonus(self, dist_to_target, dist_to_vertical_pt, v_tip_and_cart):        
-        if dist_to_vertical_pt < 0.25 * np.pi * self.l:
-            return self.hold_bonus * ((np.exp(-dist_to_target * 2) + (np.exp(-v_tip_and_cart * 2)))/2) 
+        if dist_to_vertical_pt < 0.10 * np.pi * self.l:
+            #return self.hold_bonus * ((np.exp(-dist_to_target * 2) + (np.exp(-v_tip_and_cart * 2)))/2) 
+            return self.hold_bonus / (1 + v_tip_and_cart * 100 * dist_to_target)
         return 0       
         
 

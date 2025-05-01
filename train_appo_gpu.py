@@ -281,7 +281,7 @@ if __name__ == "__main__":
           episodes=ppo_params["episodes"],
           update_epochs=ppo_params["update_epochs"],
           batch_size=ppo_params["batch_size"],
-          steps_per_env=128,  # <- Сколько шагов на одно окружение между апдейтами
+          steps_per_env=512,  # <- Сколько шагов на одно окружение между апдейтами
           log_dir=log_params["log_dir"],
           save_model_every=checkpoint_params["save_model_every"],
           kl_treshold=ppo_params["kl_treshold"])
