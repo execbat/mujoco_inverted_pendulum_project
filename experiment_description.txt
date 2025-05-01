@@ -1,100 +1,125 @@
-Environment Documentation: InvertedPendulumGymEnv_0 (MuJoCo-based Gym Environment)
+Environment Documentation: MuJoCo Inverted Pendulum Target
 
 Overview
-This environment is a custom OpenAI Gym-compatible environment built on top of the MuJoCo physics engine. Its purpose is to simulate an inverted pendulum system mounted on a movable cart, with the goal of stabilizing the pendulum in an upright position. The environment supports continuous control and is structured to enable reinforcement learning algorithms to learn balancing behavior through physical simulation.
+
+	This project defines a custom OpenAI Gym-compatible environment built upon the MuJoCo physics simulator. The environment simulates an inverted pendulum mounted on a cart. The control task for the agent is to move the pole's tip to a dynamically spawned target point in space and maintain balance in its vicinity. The environment is designed for use with reinforcement learning algorithms, in particular Proximal Policy Optimization (PPO).
+	
 
 Core Objective
-The primary objective for the agent is to control the horizontal motion of the cart in such a way that the attached pole remains as close to vertical as possible, ideally stabilizing the tip of the pole at the topmost position (vertically upright). Additional objectives include minimizing unnecessary motion and eventually reaching and hovering near a randomly placed target ("ball") point in space.
 
-Environment Structure and Implementation
-The environment is implemented as a subclass of gym.Env and wrapped in the Gymnasium API to enable compatibility with standard RL libraries. It includes:
+	The main learning objective is to control the cart such that:
 
-A MuJoCo simulation backend (InvertedPendulumEnv)
+	The pole tip reaches a target position (a randomly spawned point referred to as a "ball").
 
-Observation and action spaces defined using gymnasium.spaces
+	The pole remains balanced in an upright position.
 
-Time management through optional gymnasium.wrappers.TimeLimit
+	This dual objective promotes both precision in reaching the spatial target and dynamic stabilization.
+	
+
+Environment Architecture
+
+	The environment is implemented using gym.Env and is compatible with the Gymnasium API. It uses a MuJoCo-based physics simulation (via InvertedPendulumEnv) and integrates seamlessly with standard RL pipelines.
+	
 
 Action Space
 
-Type: Box(low=-3.0, high=3.0, shape=(1,))
+	Type: Box(low=-3.0, high=3.0, shape=(1,), dtype=np.float32)
 
-Description: Represents the continuous force applied to the cart.
+	Description: Represents the continuous horizontal force applied to the cart.
+	
 
 Observation Space
 
-Type: Box(shape=(14,))
+	Type: Box(shape=(14,))
 
-Contents:
+	Contents:
 
-Cart position and velocity
+	Cart position and velocity
 
-Pole angle and angular velocity
+	Pole angle and angular velocity
 
-Distance to vertical tip (arc distance)
+	Arc distance between the pole tip and the vertical point above the cart
 
-Distance to a moving target point
+	Euclidean distance between the pole tip and the target point
 
-Tip position (x, z)
+	Pole tip X, Z position in world coordinates
 
-Target point position (x, z)
+	Target X, Z position in world coordinates
 
-Normalized pole mass
+	Pole mass (normalized)
 
-Normalized gravity moment (torque due to gravity)
+	Gravity moment (torque due to gravity)
 
-Pole tip velocity magnitude
+	Linear velocity magnitude of the pole tip
 
-Pole tip acceleration
+	Acceleration of the pole tip
 
-Reward Structure
-The reward function includes multiple components:
 
-Tip Speed Bonus: Encourages the pole tip velocity to match an idealized function defined by
 
-where  is the pole angle derived from arc distance.
+Reward Design
 
-Tip Acceleration Bonus: Encourages the pole tip acceleration to match an ideal profile:
+	The reward function combines several shaped components:
 
-This matches the kinematic expectation of the pendulum's movement.
+	Positive Rewards
 
-Gravity Moment Bonus: Rewards minimizing the gravitational torque when the pole is upright, encouraging physical compensation of instability.
+		Tip Speed Bonus: Encourages the pole tip velocity to approximate a predefined function based on the arc angle (imitation-based guidance).
 
-Distance-to-Target Bonus: Given a random target point, the closer the tip is to this point (within a certain arc distance), the higher the reward.
+		Tip Acceleration Bonus: Encourages acceleration to match the derivative of the velocity function.
 
-Cosine Weighting: A multiplier based on  is applied to ensure rewards are emphasized when the pole is near vertical.
+		Upright Bonus: Multiplies rewards by (1 + cos(theta)) / 2, increasing the reward when the pole is near vertical.
 
-Penalties
+		Gravity Moment Compensation Bonus: Rewards when the torque due to gravity is low near the vertical position.
 
-Cart Out of Bounds Penalty: Applied when the cart moves beyond a position threshold.
+		Distance-to-Target Bonus: Rewards proximity to the target (ball), scaled more heavily when near vertical.
 
-Idle Penalty: Penalizes the agent for minimal changes between consecutive states.
+	Penalties
 
-High-Speed Penalty (optional): Can be activated to penalize excessive velocities.
+		Cart Out of Bounds: Penalizes if the cart leaves screen bounds.
 
-Mass Randomization
-To increase robustness, the pole's mass is randomized on each reset within a given range. The normalized value is included in the observation to assist the agent in adaptation (domain randomization).
+		Inactivity: Penalizes minimal state change between steps.
 
-Environment Dynamics and Termination
+		(Optional) High-Speed Penalty: Can be activated to discourage excessive pole tip velocity.
+		
 
-Each episode proceeds in discrete steps.
+Domain Randomization
 
-Termination condition is based on simulation failure or environment-specific thresholds.
+	To enhance robustness, the pole mass is randomized within [10.0, 30.0] kg on each reset. The normalized mass is included in the observation to allow the policy to adapt dynamically.
+	
 
-Environment can optionally render using MuJoCo visualizer if render=True.
+Learning Strategy
+
+	The environment is tailored for model-free reinforcement learning. PPO (Proximal Policy Optimization) is the main algorithm applied. The reward shaping acts as curriculum guidance:
+
+	The agent learns to generate upward motion using velocity and acceleration matching.
+
+	It stabilizes the pole vertically.
+
+	It learns to navigate and hold near dynamically spawned target points.
+	
+
+Termination
+
+	Episodes terminate upon cart boundary violations, or when predefined simulation constraints are breached.
+	
+
+Rendering
+
+	MuJoCo visualizer can be enabled by setting render=True.
+	
 
 Usage
-This environment is designed to be used with model-free RL algorithms such as PPO. The physics realism combined with crafted shaped rewards guides the agent through a curriculum:
 
-Learn to generate upward motion.
+	Training: via train_cpu.py, train_gpu.py, or train_appo_gpu.py
 
-Match ideal velocity and acceleration profiles.
+	Evaluation: via enjoy.py
 
-Stabilize near the top.
+	Logging: TensorBoard logs are stored under runs/ppo_run
 
-Reach and hold near a goal point.
+	Configuration: specified in config.yaml
+	
 
 Conclusion
-InvertedPendulumGymEnv_0 offers a flexible, realistic, and analytically structured benchmark for learning complex balancing tasks using reinforcement learning. It emphasizes physics-based guidance (via analytical functions for velocity/acceleration) and layered reward shaping to enable sample-efficient learning in dynamic control problems.
+
+	This environment provides a physically grounded, modular, and curriculum-driven framework for training reinforcement learning agents on precision balancing and control tasks. By combining domain randomization, imitation-like signal shaping, and well-structured rewards, it serves as a rich testbed for control algorithms in dynamic environments.
 
 

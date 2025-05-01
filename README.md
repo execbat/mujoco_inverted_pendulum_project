@@ -112,39 +112,49 @@ After training, you can run the agent using: `python enjoy.py`
 
     Observation Space:
 
-        Cart position and velocity       
+        - Cart position and velocity       
 
-        Pole angle and angular velocity  
+        - Pole angle and angular velocity  
+        
+        - Arc distance between the pole end point and vertical point above the cart
 
-        Distance to target               
+        - Linear distance between the pole end point and target point
+        
+        - X, Z coordinates of the pole end point in World CS
+        
+        - X, Z coordinates of the target point in World CS 
+        
+        - Mass of the pole
+        
+        - Gravity moment of the pole            
 
-        Tip velocity
+        - Linear velocity of the pole end point
+        
+        - Acceleration of the pole end point
 
-        Potential energy
+        - Potential energy
 
-        Tip coordinates
 
     Action Space:
 
-        Continuous control (horizontal force applied to the cart)
+        - Continuous control (horizontal force applied to the cart)
+        
 
 The environment rewards:
 
-    Approaching the vertical point smoothly
+    Matching the pole end point velocity with manually designed velocity function. (Imitation learning)
+    
+    Matching the pole end point acceleration with acceleration function derived from manually designed velocity function. (Imitation learning)
 
-    Proper tip speed
+    Keeping the pole upwards
+    
+    Compensation of the gravity moment when the pole stays upwards
 
-    Smooth acceleration
-
-    Staying vertical
-
-    Reaching and holding near the target
+    Keeping the pole end point closer to the target point with minimal velocity
 
     Penalizes:
 
         Leaving the screen bounds
-
-        High accelerations if too close to the target
 
         Inactivity (no changes between steps)
         

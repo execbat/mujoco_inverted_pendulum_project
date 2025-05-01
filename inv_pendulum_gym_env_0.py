@@ -18,7 +18,7 @@ class InvertedPendulumGymEnv_0(gym.Env):
 
     metadata = {"render_modes": ["human"], "render_fps": 50}
 
-    def __init__(self, render: bool = False, spawn_ball_every: int = 300):
+    def __init__(self, render: bool = False, spawn_ball_every: int = 500):
         """
         Initialize the environment.
 
