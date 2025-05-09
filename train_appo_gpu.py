@@ -64,8 +64,10 @@ def collect_samples_parallel(envs, actor, critic, gamma, lam, steps_per_env= 200
         log_prob = dist.log_prob(action).sum(axis=-1)
 
         # Step environments
-        next_state, reward, done, truncated, _ = envs.step(action.cpu().numpy())
+        next_state, reward, terminated, truncated, _ = envs.step(action.cpu().numpy())
+        done = np.array(terminated) | np.array(truncated)
         next_state = np.array(next_state)
+        
         
         # Store collected data
         states.append(state_tensor)
@@ -279,7 +281,7 @@ if __name__ == "__main__":
           episodes=ppo_params["episodes"],
           update_epochs=ppo_params["update_epochs"],
           batch_size=ppo_params["batch_size"],
-          steps_per_env=512,  # <- steps between updates
+          steps_per_env=2048,  # <- steps between updates
           log_dir=log_params["log_dir"],
           save_model_every=checkpoint_params["save_model_every"],
           kl_treshold=ppo_params["kl_treshold"])
