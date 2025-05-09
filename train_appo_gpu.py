@@ -82,10 +82,8 @@ def collect_samples_parallel(envs, actor, critic, gamma, lam, steps_per_env= 200
 
         # Reset done environments
         if np.any(done):
-            reset_indices = np.where(done)[0]
-            for idx in reset_indices:
-                reset_obs, _ = envs.reset_done()
-                next_state[done] = reset_obs[done]
+            reset_obs, _ = envs.reset()
+            next_state[done] = reset_obs[done]
 
         state = next_state
     
