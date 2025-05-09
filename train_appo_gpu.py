@@ -35,15 +35,16 @@ def make_env(env_name):
 def compute_gae(rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor, gamma: float, lam: float) -> torch.Tensor:
     """Compute GAE advantages in a vectorized way."""
     # Append last value for bootstrap
-    values = torch.cat([values, torch.zeros(1, device=values.device)])
+    values = torch.cat([values, torch.zeros_like(values[0:1])], dim=0)  # [T+1]
     deltas = rewards + gamma * values[1:] * (1 - dones) - values[:-1]
 
-    advantages = torch.zeros_like(deltas)
+    returns = torch.zeros_like(deltas)
     gae = 0
     for t in reversed(range(len(deltas))):
         gae = deltas[t] + gamma * lam * (1 - dones[t]) * gae
-        advantages[t] = gae
-    return advantages
+        #advantages[t] = gae 
+        returns[t] = gae + values[t]
+    return returns
     
 def collect_samples_parallel(envs, actor, critic, gamma, lam, steps_per_env= 2000):
     """Collect samples in parallel environments."""
@@ -91,31 +92,21 @@ def collect_samples_parallel(envs, actor, critic, gamma, lam, steps_per_env= 200
     
     
     # Compute advantages
-    values = torch.stack(values + [torch.zeros_like(values[0])])  # Append bootstrap value
+    values = torch.stack(values) # + [torch.zeros_like(values[0])])  # Append bootstrap value
     rewards = torch.stack(rewards)
     dones = torch.stack(dones)
 
-    
-    returns = []
-    gae = 0
-    for i in reversed(range(steps_per_env)):
-        delta = rewards[i] + gamma * values[i+1] * (1.0 - dones[i]) - values[i]
-        gae = delta + gamma * lam * (1.0 - dones[i]) * gae
-        returns.insert(0, gae + values[i])
-
-    returns = torch.stack(returns)
-    advantages = returns - values[:-1]
+    returns = compute_gae(rewards, values, dones, gamma, lam)
+    advantages = returns - values 
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
-
-    min_size = min([len(i) for i in [states, returns, advantages]])
     
-    states = torch.stack(states[:min_size])
-    actions = torch.stack(actions[:min_size])
-    log_probs = torch.stack(log_probs[:min_size])
-    returns = returns[:min_size]
-    advantages = advantages[:min_size].detach()
-    mus = torch.stack(mus[:min_size])
-    stds = torch.stack(stds[:min_size])
+    states = torch.stack(states)
+    actions = torch.stack(actions)
+    log_probs = torch.stack(log_probs)
+    returns = returns
+    advantages = advantages.detach()
+    mus = torch.stack(mus)
+    stds = torch.stack(stds)
     
     total_reward = rewards.cpu().numpy().sum()
     return states, actions, log_probs, returns, advantages, mus, stds, total_reward
