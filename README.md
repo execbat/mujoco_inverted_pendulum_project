@@ -1,3 +1,4 @@
+![Isaac Lab](cartpole_demo.gif)
 # MuJoCo Inverted Pendulum Target
 
 This project provides a **custom MuJoCo environment** where an agent controls an inverted pendulum.  
